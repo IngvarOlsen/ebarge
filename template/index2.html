@@ -1,0 +1,111 @@
+
+<!-- Refresh the page every 1 min as a placeholder, will make it dynamic with AJAX in future -->
+<meta http-equiv="refresh" content="60">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css" integrity="sha512-10/jx2EXwxxWqCLX/hHth/vu2KY3jCF70dCQB8TSgNjbCVAC/8vai53GfMDrO2Emgwccf2pJqxct9ehpzG+MTw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="../static/style.css" />
+
+
+<script src="{{url_for('static', filename='/jquery.js')}}"></script>
+<script src="{{url_for('static', filename='/chart.js')}}"></script>
+
+<!-- For fetch, another way to do ajax -->
+<!-- <script src="{{url_for('static', filename='/polyfill.js')}}"></script>
+<script src="{{url_for('static', filename='/fetch.js')}}"></script> -->
+
+
+<!-- <script src="../static/jquery.js"></script> -->
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script> -->
+<!-- <script>window.jQuery || document.write('<script src="{{
+  url_for('static', filename='jquery.js') }}">\x3C/script>')</script> -->
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
+<!-- <script src="../static/script.js"></script> -->
+
+<div class="wrapper">
+  <h1>weGrain</h1>
+  <div class="buttons">
+    <button class="raise">Add Container</button>
+
+    <button class="raise" onClick="toggledisplay('tempChart');"><i class="fa-solid fa-temperature-half"></i> Temp Chart</button>
+
+    <button class="raise" onClick="toggledisplay('humidChart');">
+      <i class="fa-solid fa-smog"></i> Humidity Chart</button>
+    <button class="raise" onClick="toggledisplay('settingsForm');"> Alarm Settings</button>
+  </div>
+</div>
+
+<div class="tempChart">
+  <canvas id="tempChart"></canvas>
+</div>
+<div class="humidChart">
+  <canvas id="humidChart"></canvas>
+</div>
+
+<div id="settingsForm">
+  <form action="/_editAlarmSettings" method="POST">
+    <div class="form-group" style="margin:20px">
+      <label>Temperature Max</label><br>
+      <input type="range" name=tempRange min="1" max="100" value="50" class="slider" id="tempRange" oninput="this.nextElementSibling.value = this.value">
+      <output>50</output>
+      
+    </div>
+    <div class="form-group" style="margin:20px">
+      <label>Humidity Max</label><br>
+      <input type="range" name="humidRange" min="1" max="100" value="50" class="slider" id="humidRange" oninput="this.nextElementSibling.value = this.value">
+      <output>50</output>
+    </div>
+    <div class="form-group" style="margin:20px">
+      <input type="checkbox" id="alarmRepeating" name="alarmRepeating" value="">
+      <label for="alarmRepeating">Repeat Alarm</label><br>
+    </div>
+    <button type="submit" class="raise">Submit</button>
+  </form>
+</div>
+
+<div class="pie-charts">
+  <div class="pieID--container1 pie-chart--wrapper">
+    <h2>Container 1 Corn </h2>
+    <p>Humid: {{humid}}</p>
+    <p>Temp: {{temp}}</p>
+    <p>Battery:  {{batVolt}}v - 75%</p>
+    <div class="pie-chart">
+      <div class="pie-chart__pie"></div>
+      <ul class="pie-chart__legend">
+        <li><em>Humidity</em><span>{{humid}}</span></li>
+        <li style="display:none;"><em></em><span>100</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="pieID--container2 pie-chart--wrapper">
+    <h2>Container 2 Grain</h2>
+    <p>Humid:20%</p>
+    <p>Temp:32 c</p>
+    <p>Battery: 5.6v - 70%</p>
+    <div class="pie-chart">
+      <div class="pie-chart__pie"></div>
+      <ul class="pie-chart__legend">
+        <li><em>Humidity</em><span>20</span></li>
+        <li style="display:none;"><em></em><span>100</span></li>
+
+      </ul>
+    </div>
+  </div> 
+  <div class="pieID--container3 pie-chart--wrapper">
+    <h2>Container 3 Seeds</h2>
+    <p style="color:red;">Humid:57%</p>
+    <p>Temp:34 c</p>
+    <p>Battery: 5.8v - 80%</p>
+    <div class="pie-chart">
+      <div class="pie-chart__pie"></div>
+      <ul class="pie-chart__legend">
+        <li><em>Humidty</em><span>57</span></li>
+        <li style="display:none;"><em></em><span>100</span></li>
+
+      </ul>
+    </div>
+  </div> 
+</div>
+</div>
+
+<script src="{{url_for('static', filename='/script.js')}}"></script>

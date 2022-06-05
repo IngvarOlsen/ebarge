@@ -1,0 +1,66 @@
+<div class="loginWrapper">
+	<div class="container" >
+		<h1>eBarge</h1>
+		
+		<form method="POST" class="form loginForm">
+			<h2 class="formTitle">Login</h2>
+			<input type="text" placeholder="Email">
+			<input type="password" placeholder="Password">
+			<button type="submit" id="login-button" class="loginBtn">Login</button>
+			<button type="submit" class="newUserBtn">New User</button>
+			<div class="forgotPasswordBtn">
+				<p>Forgot your password?</p>
+			</div>
+			
+		</form>
+		
+		 <form class="form registerForm" style="display:none">
+		 <h2 class="formTitle">Create a new user</h2>
+										<input type="text" placeholder="Email">
+										<input type="password" id="password" maxlength="20" placeholder="Password">
+								  	<input type="password" maxlength="20"placeholder="Repeat Password">   
+
+<!-- The password strength is devided up in multiple boxes -->
+<div id="PasswordForm">
+  <div id="password-str">  
+    <div class="box box1">
+        <div class="bar-text"></div>
+        <div class="bar"></div>
+    </div>
+    <div class="box box2">
+        <div class="bar"></div>
+    </div>
+    <div class="box box3">
+        <div class="bar"></div>
+    </div>
+    <div class="box box4">
+        <div class="bar"></div>
+    </div>   
+  </div>
+</div>	 
+             <button type="submit" class="registerBtn">Create</button>
+					   <button type="submit" class="cancelBtn">Cancel</button>
+     </form>
+		 <form class="form forgotPasswordForm" style="display:none">
+		 <h2 class="formTitle">Reset Password</h2>
+			 <p class style="margin-bottom:25px;">A mail will be sent to your address, with a guide and link to reset your password</p>
+						 <input type="text" placeholder="Email">								         
+					   <button type="submit" class="resetConfirm">Reset</button>
+			       <button type="submit" class="cancelBtn">Cancel</button>
+     </form>
+		
+	</div>
+	<!-- ul li for squares -->
+	<ul class="bg-bubbles">
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+	</ul>
+</div>
