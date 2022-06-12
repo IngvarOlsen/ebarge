@@ -4,38 +4,14 @@ import time
 import json #In order to return SQL as json
 import decimal #In order to format decimal to be used in json return
 from datetime import datetime
-from flask import Flask, url_for, render_template, request, g, Blueprint
+from flask import Flask, url_for, render_template, request, g, Blueprint, session, redirect
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, login_user, login_required, logout_user
 
-from . import db
+login_manager = LoginManager()
 
 
-# For mutlithreading
-#from multiprocessing import Process, Value
-
-# from apscheduler.schedulers.background import BackgroundScheduler
-# # Flask version
-# #from flask_apscheduler import APScheduler
-# #To exit/end the lora scheduler on app exit
-# import atexit
-
-# ## LORA imports, adafruit_rfm9x, busio and digitalio needs to be installed first 
-# # Import RFM9x
-# import adafruit_rfm9x
-# # Configure LoRa Radio
-# # Import Blinka Libraries
-# import busio
-# from digitalio import DigitalInOut, Direction, Pull
-# import board
-
-## LoRa variables
-# CS = DigitalInOut(board.CE1)
-# RESET = DigitalInOut(board.D25)
-# spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
-# rfm9x = adafruit_rfm9x.RFM9x(spi, CS, RESET, 869.0)
 prev_packet = None
-
 prev_packet_contents = "Empty"
 
 
@@ -43,6 +19,10 @@ prev_packet_contents = "Empty"
 app = Flask(__name__,
             static_folder='static',
             template_folder='template')
+
+# Just makes a new secret key on start, which also invalidates every users session 
+# but it's alright for this school project
+app.secret_key = str.encode(str(Flask.secret_key))
 
 #Converts any decimals to float so it can then be formated to JSON which can then be sent to website
 def dec_serializer(sqlData):
@@ -56,7 +36,7 @@ def dec_serializer(sqlData):
 # Had to make the db connector to a repeatable callable function, as the connection have to be close everytime it gets used 
 def dbConnect():
     global conn
-    conn = sqlite3.connect('wegrain.db')
+    conn = sqlite3.connect('ebarge.db')
     global curs
     curs = conn.cursor()
 
@@ -234,28 +214,27 @@ def editAlarmSettings():
 
 
 #### Login logic #####
-@auth.route('/signup', methods=['POST'])
+@app.route('/signup_post', methods=['POST'])
 def signup_post():
     # code to validate and add user to database goes here
     email = request.form.get('email')
-    name = request.form.get('name')
     password = request.form.get('password')
 
-    user = User.query.filter_by(email=email).first() # if this returns a user, then the email already exists in database
+    # user = User.query.filter_by(email=email).first() # if this returns a user, then the email already exists in database
 
     if user: # if a user is found, we want to redirect back to signup page so user can try again
         return redirect(url_for('auth.signup'))
 
     # create a new user with the form data. Hash the password so the plaintext version isn't saved.
-    new_user = User(email=email, name=name, password=generate_password_hash(password, method='sha256'))
+    # new_user = User(email=email, password=generate_password_hash(password, method='sha256'))
 
     # add the new user to the database
-    db.session.add(new_user)
-    db.session.commit()
+    # db.session.add(new_user)
+    # db.session.commit()
 
     return redirect(url_for('auth.login'))
 
-@auth.route('/login', methods=['POST'])
+@app.route('/login_post', methods=['POST'])
 def login_post():
     # login code goes here
     email = request.form.get('email')
@@ -300,7 +279,9 @@ if __name__ == '__main__':
     #lora.start()
     # Reloader false to avoid the lora while loop to be activated multiple times
     #app.run(debug=True, use_reloader=False)
-    app.run(debug=True, host="0.0.0.0")
+    login_manager.init_app(app)
+    # app.run(debug=True, host="0.0.0.0")
+
     #lora.join()
 
     ## Closes down the Lora controller program on exit

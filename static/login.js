@@ -8,19 +8,36 @@
 ///////////////////
 $('.registerForm').hide();
 
- $('.newUserBtn').click(function(e) {
-   e.preventDefault();
-	 $('.loginForm').hide();
-	 $('.registerForm').fadeIn(500);
- });
+//  $('.newUserBtn').click(function(e) {
+//    e.preventDefault();
+// 	 $('.loginForm').hide();
+// 	 $('.registerForm').fadeIn(500);
+//  });
 
-$('.cancelBtn').click(function(e) {
-   e.preventDefault();
-	 $('.registerForm').hide();
-	 $('.forgotPasswordForm').hide();
-	 $('.loginForm').fadeIn(500);
+ function newUserView(){
+    // this.preventDefault();
+    $('.loginForm').hide();
+    $('.registerForm').fadeIn(500);
+ }
+
+function cancelToStart(){
+    $('.registerForm').hide();
+    $('.forgotPasswordForm').hide();
+    $('.loginForm').fadeIn(500);
+}
+
+function forgotPasswordView(){
+    $('.loginForm').hide();
+    $('.forgotPasswordForm').fadeIn(500);
+}
+
+// $('.cancelBtn').click(function(e) {
+//    e.preventDefault();
+// 	 $('.registerForm').hide();
+// 	 $('.forgotPasswordForm').hide();
+// 	 $('.loginForm').fadeIn(500);
 	
- });
+//  });
 
 $('.forgotPasswordBtn').click(function(e) {
    e.preventDefault();
