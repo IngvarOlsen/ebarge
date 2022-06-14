@@ -4,15 +4,36 @@ import time
 import json #In order to return SQL as json
 import decimal #In order to format decimal to be used in json return
 from datetime import datetime
-from flask import Flask, url_for, render_template, request, g, Blueprint, session, redirect
+from flask import Flask, url_for, render_template, request, g, Blueprint, session, redirect, flash
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import LoginManager, login_user, login_required, logout_user
+
+from flask_sqlalchemy import SQLAlchemy
+from flask_bcrypt import Bcrypt
+from flask_migrate import Migrate
+
+from flask_login import (
+    UserMixin,
+    login_user,
+    LoginManager,
+    current_user,
+    logout_user,
+    login_required,
+)
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, SubmitField, BooleanField
+from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
+from forms import LoginForm
+
 
 login_manager = LoginManager()
+login_manager.session_protection = "strong"
+login_manager.login_view = "login"
+login_manager.login_message_category = "info"
 
 
 prev_packet = None
 prev_packet_contents = "Empty"
+
 
 
 #Makes flask pointers for static and template folders
@@ -23,6 +44,84 @@ app = Flask(__name__,
 # Just makes a new secret key on start, which also invalidates every users session 
 # but it's alright for this school project
 app.secret_key = str.encode(str(Flask.secret_key))
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+print("Login manager starteed succesfully")
+
+## https://medium.com/analytics-vidhya/how-to-use-flask-login-with-sqlite3-9891b3248324
+class User(UserMixin):
+    def __init__(self, id, email, password):
+         self.id = unicode(id)
+         self.email = email
+         self.password = password
+         self.authenticated = False
+    def is_active(self):
+         return self.is_active()
+    def is_anonymous(self):
+         return False
+    def is_authenticated(self):
+         return self.authenticated
+    def is_active(self):
+         return True
+    def get_id(self):
+         return self.id
+         
+@login_manager.user_loader
+def load_user(user_id):
+   conn = sqlite3.connect('ebarge.db')
+   curs = conn.cursor()
+   curs.execute("SELECT * from User where id = (?)",[user_id])
+   lu = curs.fetchone()
+   if lu is None:
+      return None
+   else:
+      return User(int(lu[0]), lu[1], lu[2])
+
+@app.route("/login", methods=['GET','POST'])
+def login():
+  if current_user.is_authenticated:
+     return redirect(url_for('index'))
+  form = LoginForm()
+  if form.validate_on_submit():
+     conn = sqlite3.connect('ebarge.db')
+     curs = conn.cursor()
+     curs.execute("SELECT * FROM User where loginEmail = (?)",    [form.email.data])
+     user = list(curs.fetchone())
+     Us = load_user(user[0])
+     if form.email.data == Us.email and form.password.data == Us.password:
+        login_user(Us, remember=form.remember.data)
+        Umail = list({form.email.data})[0].split('@')[0]
+        flash('Logged in successfully '+Umail)
+        redirect(url_for('index'))
+     else:
+        flash('Login Unsuccessfull.')
+  return render_template('login.html',title='Login', form=form)
+
+
+# @login_manager.user_loader
+# def load_user(user_id):
+#     return User.get(user_id)
+
+# db = SQLAlchemy()
+# migrate = Migrate()
+# bcrypt = Bcrypt()
+
+# def create_app():
+#     app = Flask(__name__)
+#     app.static_folder='static'
+#     app.template_folder='template'
+
+#     app.secret_key = str.encode(str(Flask.secret_key))
+#     app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///ebarge.db"
+#     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+
+#     login_manager.init_app(app)
+#     db.init_app(app)
+#     migrate.init_app(app, db)
+#     bcrypt.init_app(app)
+    
+#     return app
+
 
 #Converts any decimals to float so it can then be formated to JSON which can then be sent to website
 def dec_serializer(sqlData):
@@ -39,6 +138,8 @@ def dbConnect():
     conn = sqlite3.connect('ebarge.db')
     global curs
     curs = conn.cursor()
+
+
 
 # Adds a dht22 reading
 # Parsing the input to avoid SQL injection, which is not crazy important in this project, but better to just always use it 
@@ -214,43 +315,43 @@ def editAlarmSettings():
 
 
 #### Login logic #####
-@app.route('/signup_post', methods=['POST'])
-def signup_post():
-    # code to validate and add user to database goes here
-    email = request.form.get('email')
-    password = request.form.get('password')
+# @app.route('/signup_post', methods=['POST'])
+# def signup_post():
+#     # code to validate and add user to database goes here
+#     email = request.form.get('email')
+#     password = request.form.get('password')
 
-    # user = User.query.filter_by(email=email).first() # if this returns a user, then the email already exists in database
+#     # user = User.query.filter_by(email=email).first() # if this returns a user, then the email already exists in database
 
-    if user: # if a user is found, we want to redirect back to signup page so user can try again
-        return redirect(url_for('auth.signup'))
+#     if user: # if a user is found, we want to redirect back to signup page so user can try again
+#         return redirect(url_for('auth.signup'))
 
-    # create a new user with the form data. Hash the password so the plaintext version isn't saved.
-    # new_user = User(email=email, password=generate_password_hash(password, method='sha256'))
+#     # create a new user with the form data. Hash the password so the plaintext version isn't saved.
+#     # new_user = User(email=email, password=generate_password_hash(password, method='sha256'))
 
-    # add the new user to the database
-    # db.session.add(new_user)
-    # db.session.commit()
+#     # add the new user to the database
+#     # db.session.add(new_user)
+#     # db.session.commit()
 
-    return redirect(url_for('auth.login'))
+#     return redirect(url_for('auth.login'))
 
-@app.route('/login_post', methods=['POST'])
-def login_post():
-    # login code goes here
-    email = request.form.get('email')
-    password = request.form.get('password')
-    remember = True if request.form.get('remember') else False
+# @app.route('/login_post', methods=['POST'])
+# def login_post():
+#     # login code goes here
+#     email = request.form.get('email')
+#     password = request.form.get('password')
+#     remember = True if request.form.get('remember') else False
 
-    user = User.query.filter_by(email=email).first()
+#     user = User.query.filter_by(email=email).first()
 
-    # check if the user actually exists
-    # take the user-supplied password, hash it, and compare it to the hashed password in the database
-    if not user or not check_password_hash(user.password, password):
-        flash('Please check your login details and try again.')
-        return redirect(url_for('auth.login')) # if the user doesn't exist or password is wrong, reload the page
+#     # check if the user actually exists
+#     # take the user-supplied password, hash it, and compare it to the hashed password in the database
+#     if not user or not check_password_hash(user.password, password):
+#         flash('Please check your login details and try again.')
+#         return redirect(url_for('auth.login')) # if the user doesn't exist or password is wrong, reload the page
 
-    # if the above check passes, then we know the user has the right credentials
-    return redirect(url_for('main.profile'))
+#     # if the above check passes, then we know the user has the right credentials
+#     return redirect(url_for('main.profile'))
 
 
 
@@ -267,9 +368,9 @@ def index():
     }
     return render_template("index.html", **templateData)
 
-@app.route('/login')
-def login():
-    return render_template("login.html")
+# @app.route('/login')
+# def login():
+#     return render_template("login.html")
     
 
 if __name__ == '__main__':
@@ -279,8 +380,8 @@ if __name__ == '__main__':
     #lora.start()
     # Reloader false to avoid the lora while loop to be activated multiple times
     #app.run(debug=True, use_reloader=False)
-    login_manager.init_app(app)
-    # app.run(debug=True, host="0.0.0.0")
+    
+    app.run(debug=True, host="0.0.0.0")
 
     #lora.join()
 
