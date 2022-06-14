@@ -11,7 +11,7 @@ class LoginForm(FlaskForm):
  def validate_email(self, email):
     conn = sqlite3.connect('ebarge.db')
     curs = conn.cursor()
-    curs.execute("SELECT email FROM User where loginEmail = (?)",[email.data])
+    curs.execute("SELECT email FROM User where email = (?)",[email.data])
     valemail = curs.fetchone()
     if valemail is None:
       raise ValidationError('This Email ID is not registered. Please register before login')

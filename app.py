@@ -85,7 +85,7 @@ def login():
   if form.validate_on_submit():
      conn = sqlite3.connect('ebarge.db')
      curs = conn.cursor()
-     curs.execute("SELECT * FROM User where loginEmail = (?)",    [form.email.data])
+     curs.execute("SELECT * FROM User where email = (?)",    [form.email.data])
      user = list(curs.fetchone())
      Us = load_user(user[0])
      if form.email.data == Us.email and form.password.data == Us.password:
