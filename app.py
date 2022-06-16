@@ -34,6 +34,12 @@ login_manager.login_message_category = "info"
 prev_packet = None
 prev_packet_contents = "Empty"
 
+# Had to make the db connector to a repeatable callable function, as the connection have to be close everytime it gets used 
+def dbConnect():
+    global conn
+    conn = sqlite3.connect('ebarge.db')
+    global curs
+    curs = conn.cursor()
 
 
 #Makes flask pointers for static and template folders
@@ -98,6 +104,63 @@ def login():
   return render_template('login.html',title='Login', form=form)
 
 
+
+@app.route("/signup_post", methods=['GET','POST'])
+def signup():
+    dbConnect()
+    if request.method == 'POST':
+
+        email = request.form.get('email')
+        name = request.form.get('name')
+        company = request.form.get('company')
+        contactNumber = request.form.get('contactNumber')
+        password = request.form.get('password')
+
+        sql = """SELECT email FROM User WHERE email = :email"""
+        curs.execute(sql, [email])
+        result = curs.fetchone()
+        if result:
+            #Email already registered
+            print("User email already in DB")
+            flash('Email already registered')
+        else:
+            print("Trying to save user to DB")
+            sql = """INSERT INTO User (email, name, company, contactNumber, passwordHash) values(:email, :name, :company, :contactNumber, :password)"""
+            print("User saved")
+            # sql = """INSERT INTO Readings(temp, humid, containerID, batteryVolt, loggingDate) values(:temp, :humid, :containerId, :batVolt, :loggingDate)"""
+            curs.execute(sql, [email, name, company, contactNumber, password])
+            conn.commit()
+            conn.close
+            redirect(url_for('dashboard'))
+            # return render_template('dashboard.html')
+        #redirect(url_for('login'))
+        return render_template('login.html',title='Login')
+       
+    
+
+      
+
+
+
+#   if current_user.is_authenticated:
+#      return redirect(url_for('index'))
+#   form = LoginForm()
+#   if form.validate_on_submit():
+#      conn = sqlite3.connect('ebarge.db')
+#      curs = conn.cursor()
+#      curs.execute("SELECT * FROM User where email = (?)",    [form.email.data])
+#      user = list(curs.fetchone())
+#      Us = load_user(user[0])
+#      if form.email.data == Us.email and form.password.data == Us.password:
+#         login_user(Us, remember=form.remember.data)
+#         Umail = list({form.email.data})[0].split('@')[0]
+#         flash('Logged in successfully '+Umail)
+#         redirect(url_for('index'))
+#      else:
+#         flash('Login Unsuccessfull.')
+#   return render_template('login.html',title='Login', form=form)
+
+
 # @login_manager.user_loader
 # def load_user(user_id):
 #     return User.get(user_id)
@@ -132,12 +195,7 @@ def dec_serializer(sqlData):
 ##### Db handling ######
 ########################
 
-# Had to make the db connector to a repeatable callable function, as the connection have to be close everytime it gets used 
-def dbConnect():
-    global conn
-    conn = sqlite3.connect('ebarge.db')
-    global curs
-    curs = conn.cursor()
+
 
 
 
@@ -205,6 +263,9 @@ def getLastContainerReadings(containerId):
     #return json.dumps(data, default=dec_serializer)
     #For prototype only showing stats on 1 piechart
     return str(data)
+
+
+
 
 # Deletes specifc container with ID
 @app.route('/_deleteContainer', methods=['POST'])
@@ -357,8 +418,8 @@ def editAlarmSettings():
 
 
 #Make defaul / adreess pointer which refers to index.html as start page
-@app.route('/')
-def index():
+@app.route('/dashboard')
+def dashboard():
     # jsonGetLastReading = (json.loads(getLastContainerReadings(2)))
     pieData = getLastContainerReadings(2).split(",") 
     templateData = {
@@ -366,11 +427,11 @@ def index():
         'temp': pieData[2],
         'batVolt': pieData[5]
     }
-    return render_template("index.html", **templateData)
+    return render_template("dashboard.html", **templateData)
 
-# @app.route('/login')
-# def login():
-#     return render_template("login.html")
+@app.route('/')
+def landing():
+    return render_template("login.html")
     
 
 if __name__ == '__main__':
