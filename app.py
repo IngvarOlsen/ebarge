@@ -42,6 +42,9 @@ def dbConnect():
     curs = conn.cursor()
 
 
+
+
+
 #Makes flask pointers for static and template folders
 app = Flask(__name__,
             static_folder='static',
@@ -56,8 +59,8 @@ print("Login manager starteed succesfully")
 
 ## https://medium.com/analytics-vidhya/how-to-use-flask-login-with-sqlite3-9891b3248324
 class User(UserMixin):
-    def __init__(self, id, email, password):
-         self.id = unicode(id)
+    def __init__(self, id, email, password, ):
+         self.id = str(id)
          self.email = email
          self.password = password
          self.authenticated = False
@@ -71,37 +74,122 @@ class User(UserMixin):
          return True
     def get_id(self):
          return self.id
+
+
+
+
          
 @login_manager.user_loader
-def load_user(user_id):
+def load_user(user_email):
    conn = sqlite3.connect('ebarge.db')
    curs = conn.cursor()
-   curs.execute("SELECT * from User where id = (?)",[user_id])
+   curs.execute("SELECT * from User where email = (?)",[user_email])
    lu = curs.fetchone()
+   print(lu)
    if lu is None:
       return None
    else:
+      print(f"{lu[0]},{lu[1]},{lu[2]},{lu[3]},{lu[4]},{lu[5]}")
       return User(int(lu[0]), lu[1], lu[2])
+#load_user("lll")
 
-@app.route("/login", methods=['GET','POST'])
+
+
+# @login_manager.request_loader
+# def request_loader(request):
+#     email = request.form.get('email')
+#     if email not in load_user(email):
+#         return
+
+#     user = User()
+#     user.id = email
+#     return user
+
+"""Login with flask-login and sqlite3"""
+@app.route("/login_post", methods=["GET", "POST"])
 def login():
-  if current_user.is_authenticated:
-     return redirect(url_for('index'))
-  form = LoginForm()
-  if form.validate_on_submit():
-     conn = sqlite3.connect('ebarge.db')
-     curs = conn.cursor()
-     curs.execute("SELECT * FROM User where email = (?)",    [form.email.data])
-     user = list(curs.fetchone())
-     Us = load_user(user[0])
-     if form.email.data == Us.email and form.password.data == Us.password:
-        login_user(Us, remember=form.remember.data)
-        Umail = list({form.email.data})[0].split('@')[0]
-        flash('Logged in successfully '+Umail)
-        redirect(url_for('index'))
-     else:
-        flash('Login Unsuccessfull.')
-  return render_template('login.html',title='Login', form=form)
+    dbConnect()
+    print("Login post")
+    if current_user.is_authenticated:
+        return redirect(url_for("dashboard"))
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        print(email, password)
+        if email is None or password is None:
+            flash('Please fill out the form.', 'error')
+        else:
+            print("Trying to get user")
+            curs.execute("SELECT * from User where email = (?)",[email])
+            lu = curs.fetchone()
+            conn.close()
+            print(lu)
+            if lu is None:
+                flash('Invalid username or password.', 'error')
+            else:
+                if check_password_hash(lu[2], password):
+                    user = User(int(lu[0]), lu[1], lu[2])
+                    login_user(user)
+                    return redirect(url_for("dashboard"))
+                else:
+                    flash('Invalid username or password.', 'error')
+    return render_template("login.html")
+
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for("login"))
+
+
+
+    
+#         user = load_user(form.email.data)
+#         if user is not None:
+#             if check_password_hash(user.password, form.password.data):
+#                 login_user(user)
+#                 return redirect(url_for("index"))
+#             else:
+#                 flash("Password is incorrect")
+
+         
+
+# @app.route('/login', methods=['GET', 'POST'])
+# def login():
+#     if request.method == 'GET':
+#         return redirect(url_for('login'))
+
+#     email = request.form['email']
+#     user = load_user(email)
+#     if email in users and request.form['password'] == users[email]['password']:
+#         user = User()
+#         user.id = email
+#         flask_login.login_user(user)
+#         return redirect(url_for('dashboard'))
+
+#     return 'Bad login'
+
+# @app.route("/login", methods=['GET','POST'])
+# def login():
+#   if current_user.is_authenticated:
+#      return redirect(url_for('index'))
+#   form = LoginForm()
+#   if form.validate_on_submit():
+#      conn = sqlite3.connect('ebarge.db')
+#      curs = conn.cursor()
+#      curs.execute("SELECT * FROM User where email = (?)",    [form.email.data])
+#      user = list(curs.fetchone())
+#      print(user)
+#      Us = load_user(user[0])
+#      if form.email.data == Us.email and form.password.data == Us.password:
+#         login_user(Us, remember=form.remember.data)
+#         Umail = list({form.email.data})[0].split('@')[0]
+#         flash('Logged in successfully '+Umail)
+#         redirect(url_for('index'))
+#      else:
+#         flash('Login Unsuccessfull.')
+#   return render_template('login.html',title='Login', form=form)
 
 
 
@@ -128,7 +216,8 @@ def signup():
             sql = """INSERT INTO User (email, name, company, contactNumber, passwordHash) values(:email, :name, :company, :contactNumber, :password)"""
             print("User saved")
             # sql = """INSERT INTO Readings(temp, humid, containerID, batteryVolt, loggingDate) values(:temp, :humid, :containerId, :batVolt, :loggingDate)"""
-            curs.execute(sql, [email, name, company, contactNumber, password])
+            hashedPassword = generate_password_hash(password)
+            curs.execute(sql, [email, name, company, contactNumber, hashedPassword])
             conn.commit()
             conn.close
             redirect(url_for('dashboard'))
