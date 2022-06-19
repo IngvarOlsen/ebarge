@@ -23,7 +23,19 @@
 <!-- <script src="../static/script.js"></script> -->
 
 <div class="wrapper">
-  <h1>weGrain</h1>
+  <!-- Logout button with styling of a login out button anchored to the right with fixed position-->
+  <div class="logout-button">
+    <a href="{{ url_for('logout') }}" class="logout-button-link">
+      <button class="logout-button-button">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
+    </a>
+  </div>
+
+
+
+  
+  <h1>eBarge</h1>
   <div class="buttons">
     <button class="raise">Add Container</button>
 
