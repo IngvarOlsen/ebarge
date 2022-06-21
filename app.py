@@ -76,8 +76,6 @@ class User(UserMixin):
          return self.id
 
 
-
-
          
 @login_manager.user_loader
 def load_user(user_email):
@@ -144,55 +142,6 @@ def logout():
 
 
 
-    
-#         user = load_user(form.email.data)
-#         if user is not None:
-#             if check_password_hash(user.password, form.password.data):
-#                 login_user(user)
-#                 return redirect(url_for("index"))
-#             else:
-#                 flash("Password is incorrect")
-
-         
-
-# @app.route('/login', methods=['GET', 'POST'])
-# def login():
-#     if request.method == 'GET':
-#         return redirect(url_for('login'))
-
-#     email = request.form['email']
-#     user = load_user(email)
-#     if email in users and request.form['password'] == users[email]['password']:
-#         user = User()
-#         user.id = email
-#         flask_login.login_user(user)
-#         return redirect(url_for('dashboard'))
-
-#     return 'Bad login'
-
-# @app.route("/login", methods=['GET','POST'])
-# def login():
-#   if current_user.is_authenticated:
-#      return redirect(url_for('index'))
-#   form = LoginForm()
-#   if form.validate_on_submit():
-#      conn = sqlite3.connect('ebarge.db')
-#      curs = conn.cursor()
-#      curs.execute("SELECT * FROM User where email = (?)",    [form.email.data])
-#      user = list(curs.fetchone())
-#      print(user)
-#      Us = load_user(user[0])
-#      if form.email.data == Us.email and form.password.data == Us.password:
-#         login_user(Us, remember=form.remember.data)
-#         Umail = list({form.email.data})[0].split('@')[0]
-#         flash('Logged in successfully '+Umail)
-#         redirect(url_for('index'))
-#      else:
-#         flash('Login Unsuccessfull.')
-#   return render_template('login.html',title='Login', form=form)
-
-
-
 @app.route("/signup_post", methods=['GET','POST'])
 def signup():
     dbConnect()
@@ -229,50 +178,6 @@ def signup():
 
       
 
-
-
-#   if current_user.is_authenticated:
-#      return redirect(url_for('index'))
-#   form = LoginForm()
-#   if form.validate_on_submit():
-#      conn = sqlite3.connect('ebarge.db')
-#      curs = conn.cursor()
-#      curs.execute("SELECT * FROM User where email = (?)",    [form.email.data])
-#      user = list(curs.fetchone())
-#      Us = load_user(user[0])
-#      if form.email.data == Us.email and form.password.data == Us.password:
-#         login_user(Us, remember=form.remember.data)
-#         Umail = list({form.email.data})[0].split('@')[0]
-#         flash('Logged in successfully '+Umail)
-#         redirect(url_for('index'))
-#      else:
-#         flash('Login Unsuccessfull.')
-#   return render_template('login.html',title='Login', form=form)
-
-
-# @login_manager.user_loader
-# def load_user(user_id):
-#     return User.get(user_id)
-
-# db = SQLAlchemy()
-# migrate = Migrate()
-# bcrypt = Bcrypt()
-
-# def create_app():
-#     app = Flask(__name__)
-#     app.static_folder='static'
-#     app.template_folder='template'
-
-#     app.secret_key = str.encode(str(Flask.secret_key))
-#     app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///ebarge.db"
-#     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-
-#     login_manager.init_app(app)
-#     db.init_app(app)
-#     migrate.init_app(app, db)
-#     bcrypt.init_app(app)
-    
-#     return app
 
 
 #Converts any decimals to float so it can then be formated to JSON which can then be sent to website
