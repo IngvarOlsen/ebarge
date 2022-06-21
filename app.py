@@ -43,12 +43,29 @@ def dbConnect():
 
 
 
-
-
 #Makes flask pointers for static and template folders
 app = Flask(__name__,
             static_folder='static',
             template_folder='template')
+
+
+# Placeholder API functions so ready to revice data from Pi LTE solution
+"""Rest full api which takes get_data as arguments"""
+@app.route("/reading_post_data", methods=["POST"])
+def reading_post_data():
+    test = request.get_data()
+    print(test.decode("utf-8"))
+    return "OK", 200
+
+"""Rest full api which takes get_json as arguments"""
+@app.route("/reading_post_json", methods=["POST"])
+def reading_post_json():
+    test = request.get_json()
+    print(test)
+    return "OK", 200
+
+
+
 
 # Just makes a new secret key on start, which also invalidates every users session 
 # but it's alright for this school project
@@ -189,10 +206,6 @@ def dec_serializer(sqlData):
 ##### Db handling ######
 ########################
 
-
-
-
-
 # Adds a dht22 reading
 # Parsing the input to avoid SQL injection, which is not crazy important in this project, but better to just always use it 
 @app.route('/_addReadings', methods=['POST'])
@@ -208,15 +221,20 @@ def addReadings(temp, humid, containerId, batVolt, loggingDate):
         print("Error : " + str(e))
     return "Reading added"
 
-# Adds a container
+
+# Adds a container with the adminID which later binds to readings
 @app.route('/_addContainer', methods=['POST'])
-def addContainer():
+def addContainer(adminID):
     dbConnect()
-    sql = """INSERT INTO Container(loadingDate) values(:dateTime)"""
-    dateTime = datetime.now()
-    curs.execute(sql,[dateTime])
-    conn.commit()
-    conn.close()
+    sql = """INSERT INTO Container(loadingDate) values(:dateTime, :adminID)"""
+    try:
+        dateTime = datetime.now()
+        curs.execute(sql, [dateTime, adminID])
+        conn.commit()
+        conn.close()
+        print("Container Added")
+    except Exception as e:
+        print("Error : " + str(e))
     return "Container added"
 
 # return all readings
