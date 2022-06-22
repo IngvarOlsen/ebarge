@@ -50,19 +50,19 @@ app = Flask(__name__,
 
 
 # Placeholder API functions so ready to revice data from Pi LTE solution
-"""Rest full api which takes get_data as arguments"""
-@app.route("/reading_post_data", methods=["POST"])
-def reading_post_data():
-    test = request.get_data()
-    print(test.decode("utf-8"))
-    return "OK", 200
+# """Rest full api which takes get_data as arguments"""
+# @app.route("/reading_post_data", methods=["POST"])
+# def reading_post_data():
+#     test = request.get_data().decode("utf-8")
+#     print(test)
+#     return "OK", 200
 
-"""Rest full api which takes get_json as arguments"""
-@app.route("/reading_post_json", methods=["POST"])
-def reading_post_json():
-    test = request.get_json()
-    print(test)
-    return "OK", 200
+# """Rest full api which takes get_json as arguments"""
+# @app.route("/reading_post_json", methods=["POST"])
+# def reading_post_json():
+#     test = request.get_json()
+#     print(test)
+#     return "OK", 200
 
 
 
@@ -426,18 +426,56 @@ def editAlarmSettings():
 #     # if the above check passes, then we know the user has the right credentials
 #     return redirect(url_for('main.profile'))
 
+# Old dashboard 
+# @app.route('/dashboard')
+# def dashboard():
+#     # jsonGetLastReading = (json.loads(getLastContainerReadings(2)))
+#     pieData = getLastContainerReadings(2).split(",") 
+#     templateData = {
+#         'humid1': pieData[1],
+#         'temp1': pieData[2],
+#         'batVolt1': pieData[5],
+#     }
+#     return render_template("dashboard.html", **templateData)
 
+# place holder lists in case data have not been received yet from API
+pie1 = [2,20,30,20,5.0]
+
+pie2 = [3,24,26,20,5.2]
+
+# Custom for exam needs to just show newest values as it is not a program exam but more hardware and network
+@app.route("/reading_post_data", methods=["POST"])
+def reading_post_data():
+    incomingData = request.get_data().decode("utf-8")
+    data = incomingData.split(",")
+    if(data[0] == "2"):
+        global pie1
+        pie1 = data
+        print(pie1)
+    if(data[0] == "3"):
+        global pie2
+        pie2 = data    
+        print(pie2)
+    print(data)
+    
+    return "OK", 200
 
 
 #Make defaul / adreess pointer which refers to index.html as start page
 @app.route('/dashboard')
 def dashboard():
     # jsonGetLastReading = (json.loads(getLastContainerReadings(2)))
-    pieData = getLastContainerReadings(2).split(",") 
+    #pieData = getLastContainerReadings(2).split(",") 
+    print(pie1)
+    print(pie2)
     templateData = {
-        'humid': pieData[1],
-        'temp': pieData[2],
-        'batVolt': pieData[5]
+        'humid1': pie1[1],
+        'temp1': pie1[2],
+        'batVolt1': pie1[4],
+        'humid2': pie2[1],
+        'temp2': pie2[2],
+        'batVolt2': pie2[4],
+
     }
     return render_template("dashboard.html", **templateData)
 
